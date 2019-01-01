@@ -7,15 +7,10 @@
 </head>
 
 <body>
-  <a href="#sweater" onclick="openTag('sweater')">sweater</a>
-  <script>
-    const { remote, ipcRenderer } = require('electron')
-
-    function openTag(tag)
-    {
-      ipcRenderer.send("asynchronous-message", "openTag", tag)
-    }
-  </script>
+  <div id="tagList">
+    <a href="danbooruViewer.html?tag=sweater" onclick="openTag('sweater')">sweater</a>
+    <a href="danbooruViewer.html?tag=nail_polish" onclick="openTag('nail_polish')">nail_polish</a>
+  </div>
 </body>
 
 </html>

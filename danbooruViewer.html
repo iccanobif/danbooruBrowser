@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>danbooru browser</title>
+  <link href="danbooruViewer.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="navigator">
+    fdsafdsafsadfsd
+  </div>
+  <iframe id="danbooruIframe">
+  </iframe>
+  <script>
+    const { remote, ipcRenderer } = require('electron')
+    const { getUrlList } = require("./getUrlList")
+
+    const danbooruIframe = document.getElementById("danbooruIframe")
+
+    let currentTag = null
+    let linksForCurrentTag = null
+    let indexOfLinksForCurrentTag = null
+
+    function openDanbooruPage(url)
+    {
+      danbooruIframe.src = url
+    }
+
+    function openTag(tag)
+    {
+      console.log("opening tag " + tag)
+      currentTag = tag
+
+      getUrlList(currentTag)
+        .then(links =>
+        {
+          console.log("sto per cercare di aprire la pagina")
+          linksForCurrentTag = links
+          indexOfLinksForCurrentTag = 0
+          openDanbooruPage(linksForCurrentTag[0])
+        })
+        .catch(exc =>
+        {
+          throw new Error(exc)
+        })
+    }
+
+    document.addEventListener("keypress", (ev) =>
+    {
+      switch (ev.key)
+      {
+        case "a":
+          if (indexOfLinksForCurrentTag == 0)
+          {
+            // TODO alert the user that there's no other pics to see
+          }
+          else
+          {
+            indexOfLinksForCurrentTag--
+            openDanbooruPage(linksForCurrentTag[indexOfLinksForCurrentTag])
+          }
+          break
+        case "d":
+          indexOfLinksForCurrentTag++
+          if (indexOfLinksForCurrentTag >= linksForCurrentTag.length)
+          {
+            // TODO, should send a message to the render process to show an alert() or something, i guess
+          }
+          else
+          {
+            openDanbooruPage(linksForCurrentTag[indexOfLinksForCurrentTag])
+          }
+          break
+        case "e":
+          // TODO save
+          break
+        case "s":
+          // TODO scroll up
+          break
+        case "w":
+          // TODO scroll down
+          break
+      }
+    })
+
+    openTag(new URL(window.location).searchParams.get("tag"))
+  </script>
+</body>
+
+</html>
