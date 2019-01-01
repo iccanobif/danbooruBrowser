@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>danbooru browser</title>
+</head>
+
+<body>
+  <a href="#sweater" onclick="openTag('sweater')">sweater</a>
+  <script>
+    const { remote, ipcRenderer } = require('electron')
+
+    function openTag(tag)
+    {
+      ipcRenderer.send("asynchronous-message", "openTag", tag)
+    }
+  </script>
+</body>
+
+</html>
