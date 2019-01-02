@@ -13,15 +13,28 @@
   </div>
   <iframe id="danbooruIframe">
   </iframe>
+  <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"> </script>
+  <script>if (window.module) module = window.module;</script>
   <script>
+    const http = require("http")
+    const fs = require("fs")
+    const path = require("path")
+    const download = require("download")
     const { remote, ipcRenderer } = require('electron')
     const { getUrlList } = require("./getUrlList")
 
     const danbooruIframe = document.getElementById("danbooruIframe")
+    const navigator = document.getElementById("navigator")
 
     let currentTag = null
-    let linksForCurrentTag = null
-    let indexOfLinksForCurrentTag = null
+    let pageList = null
+    let indexOfPagesForCurrentTag = null
+
+    function showError(err)
+    {
+      alert(err)
+    }
 
     function openDanbooruPage(url)
     {
@@ -37,9 +50,9 @@
         .then(links =>
         {
           console.log("sto per cercare di aprire la pagina")
-          linksForCurrentTag = links
-          indexOfLinksForCurrentTag = 0
-          openDanbooruPage(linksForCurrentTag[0])
+          pageList = links
+          indexOfPagesForCurrentTag = 0
+          openDanbooruPage(pageList[0].url)
         })
         .catch(exc =>
         {
@@ -47,34 +60,69 @@
         })
     }
 
+    function updateNavigator()
+    {
+      $("#navigator").html(indexOfPagesForCurrentTag + "/" + pageList.length)
+    }
+
     document.addEventListener("keypress", (ev) =>
     {
       switch (ev.key)
       {
         case "a":
-          if (indexOfLinksForCurrentTag == 0)
+          if (indexOfPagesForCurrentTag == 0)
           {
-            // TODO alert the user that there's no other pics to see
+            showError("no")
           }
           else
           {
-            indexOfLinksForCurrentTag--
-            openDanbooruPage(linksForCurrentTag[indexOfLinksForCurrentTag])
+            indexOfPagesForCurrentTag--
+            updateNavigator()
+            openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
+            // TODO insert to blacklist
           }
           break
         case "d":
-          indexOfLinksForCurrentTag++
-          if (indexOfLinksForCurrentTag >= linksForCurrentTag.length)
+          if (indexOfPagesForCurrentTag >= pageList.length)
           {
-            // TODO, should send a message to the render process to show an alert() or something, i guess
+            showError("no")
           }
           else
           {
-            openDanbooruPage(linksForCurrentTag[indexOfLinksForCurrentTag])
+            indexOfPagesForCurrentTag++
+            updateNavigator()
+            openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
+            // TODO insert to blacklist
           }
           break
         case "e":
           // TODO save
+          const fileUrl = pageList[indexOfPagesForCurrentTag].fileUrl
+          const fileName = "d:/ero/" + path.posix.basename(fileUrl)
+
+          download(fileUrl).then(data =>
+          {
+            fs.writeFile(fileName, data, (err) =>
+            {
+              if (err) showError(err)
+            })
+            alert("saved!")
+          }).catch((reason) =>
+          {
+            showError(reason)
+          })
+          const file = fs.createWriteStream(fileName)
+          http.get(fileUrl, (response) =>
+          {
+            if (response.statusCode !== 200)
+              showError("Error, statusCode: " + response.statusCode)
+
+            response.pipe(file)
+          })
+
+          break
+        case "q":
+          // TODO insert to blacklist
           break
         case "s":
           // TODO scroll up
@@ -83,6 +131,11 @@
           // TODO scroll down
           break
       }
+    })
+
+    window.addEventListener("resize", (ev) =>
+    {
+      $("#danbooruIframe").height($(window).height() - $("#navigator").height() - 8) // I don't know why there are those 8 pixels of error...
     })
 
     openTag(new URL(window.location).searchParams.get("tag"))

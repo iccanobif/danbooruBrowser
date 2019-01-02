@@ -24,7 +24,7 @@ module.exports.getUrlList = (tags) =>
                     .filter(file => file.match(/^[0-9a-f]*$/)) // Make sure the string that was extracted really looks like an md5
             )
 
-            // Grab 10 pages' worth of posts, return 
+            // Grab 10 pages' worth of posts 
             async.map(
                 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 (page, callback) =>
@@ -48,11 +48,15 @@ module.exports.getUrlList = (tags) =>
                         else
                         {
                             const completeList = results
-                                .reduce((acc, curr) =>
+                                .reduce((acc, curr) => // Flatten arrays
                                 {
                                     return acc.concat(curr)
                                 }, [])
-                                .map(x => "https://danbooru.donmai.us/posts/" + x.id)
+                                .map(x =>
+                                    ({
+                                        url: "https://danbooru.donmai.us/posts/" + x.id,
+                                        fileUrl: x.file_url
+                                    }))
 
                             resolve(completeList)
                         }
