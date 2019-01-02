@@ -22,7 +22,6 @@ function createWindow()
   mainWindow.webContents.openDevTools()
   mainWindow.on('closed', function ()
   {
-    console.log("finestra chiusa")
     mainWindow = null
   })
   mainWindow.loadFile('index.html')

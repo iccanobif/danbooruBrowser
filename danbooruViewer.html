@@ -52,7 +52,14 @@
           console.log("sto per cercare di aprire la pagina")
           pageList = links
           indexOfPagesForCurrentTag = 0
-          openDanbooruPage(pageList[0].url)
+          if (pageList.length == 0)
+          {
+            showError("no posts for tag " + currentTag)
+          }
+          else
+          {
+            openDanbooruPage(pageList[0].url)
+          }
         })
         .catch(exc =>
         {
@@ -96,29 +103,24 @@
           }
           break
         case "e":
-          // TODO save
-          const fileUrl = pageList[indexOfPagesForCurrentTag].fileUrl
+          // SAVE
+          const fileUrl = danbooruIframe.contentDocument.getElementById("image").src
           const fileName = "d:/ero/" + path.posix.basename(fileUrl)
 
-          download(fileUrl).then(data =>
+          const req = new XMLHttpRequest()
+          req.open("GET", fileUrl)
+          req.responseType = "arraybuffer"
+          req.onload = (event) =>
           {
-            fs.writeFile(fileName, data, (err) =>
+            if (req.response)
             {
-              if (err) showError(err)
-            })
-            alert("saved!")
-          }).catch((reason) =>
-          {
-            showError(reason)
-          })
-          const file = fs.createWriteStream(fileName)
-          http.get(fileUrl, (response) =>
-          {
-            if (response.statusCode !== 200)
-              showError("Error, statusCode: " + response.statusCode)
-
-            response.pipe(file)
-          })
+              fs.writeFileSync(fileName,new Uint8Array(req.response))
+              alert("saved!")
+            }
+            else
+              showError("something went wrong")
+          }
+          req.send(null)
 
           break
         case "q":

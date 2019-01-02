@@ -13,7 +13,7 @@
       const tags = [
         "tansuke",
         "yamamoto_souichirou",
-        "mattaku_mosuke",
+        "mattaku_mousuke",
         "kagematsuri",
         "sunameri_oishii",
         "kantoku",
@@ -48,7 +48,7 @@
         "smoking",
         "casual",
         "vice_%28kuronekohadokoheiku%29",
-        "atsumu_sakamoto",
+        "sakamoto_atsumu",
         "tamaoki_benkyou",
         "yoshidaworks",
         "manami_(artist)",
@@ -64,7 +64,7 @@
         "miyuki_ruria",
         "ama_mitsuki",
         "kamo_%28gafas%29",
-        "ayase08",
+        // "ayase08",
         "sousou_%28sousouworks%29",
         "vania600",
         "pipe",
@@ -119,9 +119,10 @@
         "ouchi_kaeru",
         "kasuga39",
         "miusa",
-        "matayoshi"]
+        "matayoshi",
+        "yuta_(nvkdighqqs94fg)"]
 
-      tags.forEach(tag =>
+      tags.sort().forEach(tag =>
       {
         document.write("<a href='danbooruViewer.html?tag=" + tag + "' onclick=\"openTag('" + tag + "')\">" + tag + "</a><br/>")
       })
