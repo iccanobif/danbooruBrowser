@@ -125,17 +125,20 @@
           // TODO insert to blacklist
           break
         case "s":
-          // TODO scroll up
+          // scroll up
+          window.scrollBy(0, 100)
           break
         case "w":
-          // TODO scroll down
+          // scroll down
+          window.scrollBy(0, -100)
           break
       }
     })
 
-    window.addEventListener("resize", (ev) =>
+    danbooruIframe.addEventListener("load", (ev) =>
     {
-      $("#danbooruIframe").height($(window).height() - $("#navigator").height() - 8) // I don't know why there are those 8 pixels of error...
+      // The value 20 is arbitrary, i just added some more pixels because i couldn't be arsed to figure out a better way
+      $("#danbooruIframe").height(danbooruIframe.contentWindow.document.body.scrollHeight + 20)
     })
 
     openTag(new URL(window.location).searchParams.get("tag"))
