@@ -9,7 +9,8 @@
 
 <body>
   <div id="navigator">
-    fdsafdsafsadfsd
+    <div id="position"></div> 
+    <a href="index.html">HOME</a>
   </div>
   <iframe id="danbooruIframe">
   </iframe>
@@ -20,7 +21,6 @@
     const http = require("http")
     const fs = require("fs")
     const path = require("path")
-    const download = require("download")
     const { remote, ipcRenderer } = require('electron')
     const { getUrlList } = require("./getUrlList")
 
@@ -38,6 +38,7 @@
 
     function openDanbooruPage(url)
     {
+      updateNavigator()
       danbooruIframe.src = url
     }
 
@@ -69,7 +70,7 @@
 
     function updateNavigator()
     {
-      $("#navigator").html(indexOfPagesForCurrentTag + "/" + pageList.length)
+      $("#position").html(indexOfPagesForCurrentTag + "/" + pageList.length)
     }
 
     document.addEventListener("keypress", (ev) =>
@@ -84,7 +85,7 @@
           else
           {
             indexOfPagesForCurrentTag--
-            updateNavigator()
+
             openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
             // TODO insert to blacklist
           }
@@ -97,7 +98,6 @@
           else
           {
             indexOfPagesForCurrentTag++
-            updateNavigator()
             openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
             // TODO insert to blacklist
           }
@@ -114,7 +114,7 @@
           {
             if (req.response)
             {
-              fs.writeFileSync(fileName,new Uint8Array(req.response))
+              fs.writeFileSync(fileName, new Uint8Array(req.response))
               alert("saved!")
             }
             else

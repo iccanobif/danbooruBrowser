@@ -1,7 +1,21 @@
 const Danbooru = require("danbooru")
 const fs = require("fs")
 const async = require("async")
-const booru = new Danbooru()
+
+let danbooruCredentials = undefined
+try
+{
+    const configText = fs.readFileSync("config.json", { encoding: "utf8" })
+    const { user, apiKey } = JSON.parse(configText)
+    danbooruCredentials = user + ":" + apiKey
+}
+catch (exc)
+{
+    // Should report the error
+    danbooruCredentials = undefined
+}
+
+const booru = new Danbooru(danbooruCredentials)
 
 module.exports.getUrlList = (tags) =>
 {
@@ -33,7 +47,12 @@ module.exports.getUrlList = (tags) =>
                         .posts({ tags: tags, limit: 200, page: page })
                         .then(posts =>
                         {
-                            callback(null, posts.filter(post => !md5Blacklist.has(post.md5)))
+                            callback(null, posts.filter(post => 
+                            {
+                                const output = !md5Blacklist.has(post.md5)
+                                return output
+                            }
+                            ))
                         })
                         .catch(err =>
                         {

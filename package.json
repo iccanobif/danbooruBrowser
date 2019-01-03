@@ -12,7 +12,6 @@
   "dependencies": {
     "async": "^2.6.1",
     "danbooru": "^3.0.8",
-    "download": "^7.1.0",
     "electron": "^4.0.0"
   }
 }
