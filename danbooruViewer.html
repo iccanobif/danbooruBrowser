@@ -9,7 +9,7 @@
 
 <body>
   <div id="navigator">
-    <div id="position"></div> 
+    <div id="position"></div>
     <a href="index.html">HOME</a>
   </div>
   <iframe id="danbooruIframe">
@@ -23,12 +23,13 @@
     const path = require("path")
     const { remote, ipcRenderer } = require('electron')
     const { getUrlList } = require("./getUrlList")
+    const blacklist = require("./blacklist")
 
     const danbooruIframe = document.getElementById("danbooruIframe")
     const navigator = document.getElementById("navigator")
 
     let currentTag = null
-    let pageList = null
+    let linkList = null
     let indexOfPagesForCurrentTag = null
 
     function showError(err)
@@ -42,24 +43,26 @@
       danbooruIframe.src = url
     }
 
-    function openTag(tag)
+    async function openTag(tag)
     {
       console.log("opening tag " + tag)
       currentTag = tag
 
-      getUrlList(currentTag)
+      const md5Blacklist = await blacklist.getBlacklist()
+
+      getUrlList(currentTag, md5Blacklist)
         .then(links =>
         {
           console.log("sto per cercare di aprire la pagina")
-          pageList = links
+          linkList = links
           indexOfPagesForCurrentTag = 0
-          if (pageList.length == 0)
+          if (linkList.length == 0)
           {
             showError("no posts for tag " + currentTag)
           }
           else
           {
-            openDanbooruPage(pageList[0].url)
+            openDanbooruPage(linkList[0])
           }
         })
         .catch(exc =>
@@ -70,7 +73,7 @@
 
     function updateNavigator()
     {
-      $("#position").html(indexOfPagesForCurrentTag + "/" + pageList.length)
+      $("#position").html(indexOfPagesForCurrentTag + "/" + linkList.length)
     }
 
     document.addEventListener("keypress", (ev) =>
@@ -86,19 +89,19 @@
           {
             indexOfPagesForCurrentTag--
 
-            openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
+            openDanbooruPage(linkList[indexOfPagesForCurrentTag])
             // TODO insert to blacklist
           }
           break
         case "d":
-          if (indexOfPagesForCurrentTag >= pageList.length)
+          if (indexOfPagesForCurrentTag >= linkList.length)
           {
             showError("no")
           }
           else
           {
             indexOfPagesForCurrentTag++
-            openDanbooruPage(pageList[indexOfPagesForCurrentTag].url)
+            openDanbooruPage(linkList[indexOfPagesForCurrentTag])
             // TODO insert to blacklist
           }
           break
