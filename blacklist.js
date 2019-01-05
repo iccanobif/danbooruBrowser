@@ -23,7 +23,7 @@ module.exports.getBlacklist = () =>
 
             try
             {
-                var data = fs.readFileSync(BLACKLIST_FILE_NAME)
+                var data = fs.readFileSync(BLACKLIST_FILE_NAME, { encoding: "utf8" })
             }
             catch (exc)
             {

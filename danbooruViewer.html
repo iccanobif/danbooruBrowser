@@ -76,6 +76,12 @@
       $("#position").html(indexOfPagesForCurrentTag + "/" + linkList.length)
     }
 
+    function addCurrentImageToBlacklist()
+    {
+      const md5 = danbooruIframe.contentDocument.getElementById("image-container").attributes["data-md5"].value
+      blacklist.addToBlacklist(md5)
+    }
+
     document.addEventListener("keypress", (ev) =>
     {
       switch (ev.key)
@@ -87,10 +93,9 @@
           }
           else
           {
+            addCurrentImageToBlacklist()
             indexOfPagesForCurrentTag--
-
             openDanbooruPage(linkList[indexOfPagesForCurrentTag])
-            // TODO insert to blacklist
           }
           break
         case "d":
@@ -100,9 +105,9 @@
           }
           else
           {
+            addCurrentImageToBlacklist()
             indexOfPagesForCurrentTag++
             openDanbooruPage(linkList[indexOfPagesForCurrentTag])
-            // TODO insert to blacklist
           }
           break
         case "e":
@@ -125,9 +130,6 @@
           }
           req.send(null)
 
-          break
-        case "q":
-          // TODO insert to blacklist
           break
         case "s":
           // scroll up
