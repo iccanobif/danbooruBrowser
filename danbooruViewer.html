@@ -11,6 +11,11 @@
   <div id="navigator">
     <div id="position"></div>
     <a href="index.html">HOME</a>
+    <!-- TODO:
+      current tag name
+      is saved
+      loading animation
+    -->
   </div>
   <iframe id="danbooruIframe">
   </iframe>
@@ -73,7 +78,7 @@
 
     function updateNavigator()
     {
-      $("#position").html(indexOfPagesForCurrentTag + "/" + linkList.length)
+      $("#position").html(indexOfPagesForCurrentTag + 1 + "/" + linkList.length + " " + currentTag)
     }
 
     function addCurrentImageToBlacklist()
@@ -122,8 +127,19 @@
           {
             if (req.response)
             {
-              fs.writeFileSync(fileName, new Uint8Array(req.response))
-              alert("saved!")
+              // TODO if the file already exists, alert and don't save
+              try
+              {
+                fs.writeFileSync(fileName, new Uint8Array(req.response), { flag: "wx" })
+                alert("saved!")
+              }
+              catch (exc)
+              {
+                if (exc.code == "EEXIST")
+                  alert("file already exists...")
+                else
+                  throw exc
+              }
             }
             else
               showError("something went wrong")
