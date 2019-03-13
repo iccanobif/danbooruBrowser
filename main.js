@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 const fs = require("fs")
 
 app.disableHardwareAcceleration()
+app.commandLine.appendSwitch('disable-smooth-scrolling')
 
 let mainWindow
 
