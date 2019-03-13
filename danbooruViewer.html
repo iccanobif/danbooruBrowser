@@ -17,8 +17,8 @@
       loading animation
     -->
   </div>
-  <iframe id="danbooruIframe">
-  </iframe>
+  <div id="iframeContainer">
+  </div>
   <script>if (typeof module === 'object') { window.module = module; module = undefined; }</script>
   <script src="https://code.jquery.com/jquery-3.3.1.min.js"> </script>
   <script>if (window.module) module = window.module;</script>
@@ -30,22 +30,38 @@
     const { getUrlList } = require("./getUrlList")
     const blacklist = require("./blacklist")
 
-    const danbooruIframe = document.getElementById("danbooruIframe")
     const navigator = document.getElementById("navigator")
+    const iframeContainer = document.getElementById("iframeContainer")
+
+    const danbooruIframes = {}
 
     let currentTag = null
     let linkList = null
-    let indexOfPagesForCurrentTag = null
+    let pageIndex = null
 
     function showError(err)
     {
       alert(err)
     }
 
-    function openDanbooruPage(url)
+    function addIframeToPool(url)
     {
-      updateNavigator()
-      danbooruIframe.src = url
+      console.log("aggiungo l'iframe " + url)
+      const newIframe = $("<iframe src='" + url + "' class='danbooruIframeHidden' />")
+      iframeContainer.appendChild(newIframe[0])
+      danbooruIframes[url] = newIframe
+    }
+
+    function removeIframeFromPool(url)
+    {
+      console.log("cerco di eliminare l'iframe " + url)
+      iframeContainer.removeChild(danbooruIframes[url][0])
+      delete danbooruIframes[url]
+    }
+
+    function getCurrentIframe() 
+    {
+      return danbooruIframes[linkList[pageIndex]][0]
     }
 
     async function openTag(tag)
@@ -60,14 +76,25 @@
         {
           console.log("sto per cercare di aprire la pagina")
           linkList = links
-          indexOfPagesForCurrentTag = 0
+          pageIndex = 0
           if (linkList.length == 0)
           {
             showError("no posts for tag " + currentTag)
           }
           else
           {
-            openDanbooruPage(linkList[0])
+            for (let i = 0; i < 6; i++)
+            {
+              addIframeToPool(linkList[i])
+            }
+
+            console.log("primo url: " + linkList[0])
+
+            danbooruIframes[linkList[0]]
+              .removeClass("danbooruIframeHidden")
+              .addClass("danbooruIframeVisible")
+
+            updateNavigator()
           }
         })
         .catch(exc =>
@@ -76,14 +103,52 @@
         })
     }
 
+    function scasinaIframe(direction)
+    {
+      if (direction == "forwards")
+      {
+        // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
+        if (pageIndex + 5 < linkList.length)
+          addIframeToPool(linkList[pageIndex + 5])
+
+        // Cerco un iframe con l'url di i-5 e lo distruggo
+        if (pageIndex - 5 >= 0)
+          removeIframeFromPool(linkList[pageIndex - 5])
+      }
+
+      if (direction == "backwards")
+      {
+        // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
+        if (pageIndex + 6 < linkList.length)
+          removeIframeFromPool(linkList[pageIndex + 6])
+
+        // Cerco un iframe con l'url di i-5 e lo distruggo
+        if (pageIndex - 4 >= 0)
+          addIframeToPool(linkList[pageIndex - 4])
+      }
+
+      // Cerco l'iframe con l'url di i e lo mostro, tutto gli altri li nascondo
+      Object.keys(danbooruIframes).forEach(url =>
+      {
+        if (url == linkList[pageIndex])
+          danbooruIframes[url]
+            .removeClass("danbooruIframeHidden")
+            .addClass("danbooruIframeVisible")
+        else
+          danbooruIframes[url]
+            .removeClass("danbooruIframeVisible")
+            .addClass("danbooruIframeHidden")
+      })
+    }
+
     function updateNavigator()
     {
-      $("#position").html(indexOfPagesForCurrentTag + 1 + "/" + linkList.length + " " + currentTag)
+      $("#position").html(pageIndex + 1 + "/" + linkList.length + " " + currentTag)
     }
 
     function addCurrentImageToBlacklist()
     {
-      const md5 = danbooruIframe.contentDocument.getElementById("image-container").attributes["data-md5"].value
+      const md5 = getCurrentIframe().contentDocument.getElementById("image-container").attributes["data-md5"].value
       blacklist.addToBlacklist(md5)
     }
 
@@ -92,32 +157,34 @@
       switch (ev.key)
       {
         case "a":
-          if (indexOfPagesForCurrentTag == 0)
+          if (pageIndex == 0)
           {
             showError("no")
           }
           else
           {
             addCurrentImageToBlacklist()
-            indexOfPagesForCurrentTag--
-            openDanbooruPage(linkList[indexOfPagesForCurrentTag])
+            pageIndex--
+            scasinaIframe("backwards")
+            updateNavigator()
           }
           break
         case "d":
-          if (indexOfPagesForCurrentTag >= linkList.length)
+          if (pageIndex >= linkList.length)
           {
             showError("no")
           }
           else
           {
             addCurrentImageToBlacklist()
-            indexOfPagesForCurrentTag++
-            openDanbooruPage(linkList[indexOfPagesForCurrentTag])
+            pageIndex++
+            scasinaIframe("forwards")
+            updateNavigator()
           }
           break
         case "e":
           // SAVE
-          const fileUrl = danbooruIframe.contentDocument.getElementById("image").src
+          const fileUrl = getCurrentIframe().contentDocument.getElementById("image").src
           const fileName = "d:/ero/" + path.posix.basename(fileUrl)
 
           const req = new XMLHttpRequest()
@@ -156,12 +223,6 @@
           window.scrollBy(0, -100)
           break
       }
-    })
-
-    danbooruIframe.addEventListener("load", (ev) =>
-    {
-      // The value 20 is arbitrary, i just added some more pixels because i couldn't be arsed to figure out a better way
-      $("#danbooruIframe").height(danbooruIframe.contentWindow.document.body.scrollHeight + 20)
     })
 
     openTag(new URL(window.location).searchParams.get("tag"))
