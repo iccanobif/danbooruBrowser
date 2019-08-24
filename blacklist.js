@@ -12,31 +12,40 @@ module.exports.getBlacklist = () =>
                 reject(err)
                 return
             }
-
-            const md5Blacklist = new Set(
-                files
-                    .map(file => file.substring(0, file.lastIndexOf("."))) // Remove extension
-                    .map(file => file.substring(file.length - 32)) // Extract md5 from filename
-                    .filter(file => file.length == 32) // Make sure the string that was extracted really looks like an md5
-                    .filter(file => file.match(/^[0-9a-f]*$/)) // Make sure the string that was extracted really looks like an md5
-            )
-
-            try
+            fs.readdir("d:\\ero\\smoking", (err2, files2) =>
             {
-                var data = fs.readFileSync(BLACKLIST_FILE_NAME, { encoding: "utf8" })
-            }
-            catch (exc)
-            {
-                console.error(exc)
-                var data = ""
-            }
 
-            data.split("\n").forEach(x =>
-            {
-                md5Blacklist.add(x)
+                if (err2)
+                {
+                    reject(err2)
+                    return
+                }
+                const md5Blacklist = new Set(
+                    files.concat(files2)
+                        .map(file => file.substring(0, file.lastIndexOf("."))) // Remove extension
+                        .map(file => file.substring(file.length - 32)) // Extract md5 from filename
+                        .filter(file => file.length == 32) // Make sure the string that was extracted really looks like an md5
+                        .filter(file => file.match(/^[0-9a-f]*$/)) // Make sure the string that was extracted really looks like an md5
+                )
+    
+                try
+                {
+                    var data = fs.readFileSync(BLACKLIST_FILE_NAME, { encoding: "utf8" })
+                }
+                catch (exc)
+                {
+                    console.error(exc)
+                    var data = ""
+                }
+    
+                data.split("\n").forEach(x =>
+                {
+                    md5Blacklist.add(x)
+                })
+    
+                resolve(md5Blacklist)
             })
 
-            resolve(md5Blacklist)
         })
     })
 }

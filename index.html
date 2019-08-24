@@ -4,6 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <title>danbooru browser</title>
+  <style>
+    a {
+      font-size: 2em;
+      display: inline-block;
+      min-width: 400px;
+      padding-right: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -19,7 +27,7 @@
 
       tags.sort().forEach(tag =>
       {
-        document.write("<a href='danbooruViewer.html?tag=" + tag + "' onclick=\"openTag('" + tag + "')\">" + tag + "</a><br/>")
+        document.write("<a href='danbooruViewer.html?tag=" + tag + "' onclick=\"openTag('" + tag + "')\">" + tag + "</a>")
       })
     </script>
   </div>
