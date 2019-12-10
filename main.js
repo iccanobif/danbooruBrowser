@@ -20,7 +20,7 @@ function createWindow()
     }
     callback({ cancel: false, responseHeaders: detail.responseHeaders });
   })
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   mainWindow.on('closed', function ()
   {
     mainWindow = null
