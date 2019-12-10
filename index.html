@@ -18,7 +18,6 @@
   <form action="danbooruViewer.html" method="GET">
     tag: <input type="text" name="tag">
   </form>
-
   <div id="tagList">
 
     <script>
@@ -27,7 +26,7 @@
 
       tags.sort().forEach(tag =>
       {
-        document.write("<a href='danbooruViewer.html?tag=" + tag + "' onclick=\"openTag('" + tag + "')\">" + tag + "</a>")
+        document.write("<a href='danbooruViewer.html?tag=" + tag + "'>" + tag + "</a>")
       })
     </script>
   </div>

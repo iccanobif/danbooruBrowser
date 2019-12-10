@@ -64,6 +64,32 @@
       return danbooruIframes[linkList[pageIndex]][0]
     }
 
+    function openUrlList(links)
+    {
+      console.log("sto per cercare di aprire la pagina")
+      linkList = links
+      pageIndex = 0
+      if (linkList.length == 0)
+      {
+        showError("no posts for tag " + currentTag)
+      }
+      else
+      {
+        for (let i = 0; i < 6; i++)
+        {
+          addIframeToPool(linkList[i])
+        }
+
+        console.log("primo url: " + linkList[0])
+
+        danbooruIframes[linkList[0]]
+          .removeClass("danbooruIframeHidden")
+          .addClass("danbooruIframeVisible")
+
+        updateNavigator()
+      }
+    }
+
     async function openTag(tag)
     {
       console.log("opening tag " + tag)
@@ -71,36 +97,7 @@
 
       const md5Blacklist = await blacklist.getBlacklist()
 
-      getUrlList(currentTag, md5Blacklist)
-        .then(links =>
-        {
-          console.log("sto per cercare di aprire la pagina")
-          linkList = links
-          pageIndex = 0
-          if (linkList.length == 0)
-          {
-            showError("no posts for tag " + currentTag)
-          }
-          else
-          {
-            for (let i = 0; i < 6; i++)
-            {
-              addIframeToPool(linkList[i])
-            }
-
-            console.log("primo url: " + linkList[0])
-
-            danbooruIframes[linkList[0]]
-              .removeClass("danbooruIframeHidden")
-              .addClass("danbooruIframeVisible")
-
-            updateNavigator()
-          }
-        })
-        .catch(exc =>
-        {
-          throw new Error(exc)
-        })
+      openUrlList(await getUrlList(currentTag, md5Blacklist))
     }
 
     function scasinaIframe(direction)
