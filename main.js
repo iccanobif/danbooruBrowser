@@ -3,15 +3,24 @@ const fs = require("fs")
 
 app.disableHardwareAcceleration()
 app.commandLine.appendSwitch('disable-smooth-scrolling')
+// Without disable-site-isolation-trials chrome will prevent the access to contentDocument for an iframe of different origin
+app.commandLine.appendSwitch('disable-site-isolation-trials') 
 
 let mainWindow
 
 function createWindow()
 {
-  mainWindow = new BrowserWindow({ title: "danbooru browser", autoHideMenuBar: true })
+  mainWindow = new BrowserWindow({
+    title: "danbooru browser",
+    autoHideMenuBar: true,
+    webPreferences: {
+      nodeIntegration: true,
+      webSecurity: false,
+    }
+  })
 
   // This is to bypass danbooru's restriction on not being loaded in iframes
-  mainWindow.webContents.session.webRequest.onHeadersReceived({}, (detail, callback) =>
+  mainWindow.webContents.session.webRequest.onHeadersReceived((detail, callback) =>
   {
     const xFrameOriginKey = Object.keys(detail.responseHeaders).find(header => String(header).match(/^x-frame-options$/i));
     if (xFrameOriginKey)
