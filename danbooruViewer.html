@@ -11,6 +11,7 @@
   <div id="navigator">
     <div id="position"></div>
     <a href="index.html">HOME</a>
+    <span id="messages"></span>
     <!-- TODO:
       current tag name
       is saved
@@ -42,9 +43,10 @@
     let linkList = null
     let pageIndex = null
 
-    function showError(err)
+    function writeMessage(msg)
     {
-      alert(err)
+      console.log(msg)
+      document.getElementById("messages").innerText = msg
     }
 
     function addIframeToPool(url)
@@ -74,7 +76,7 @@
       pageIndex = 0
       if (linkList.length == 0)
       {
-        showError("no posts for tag " + currentTag);
+        writeMessage("no posts for tag " + currentTag);
       }
       else
       {
@@ -144,6 +146,7 @@
     function updateNavigator()
     {
       $("#position").html(pageIndex + 1 + "/" + linkList.length + " " + currentTag)
+      writeMessage("")
     }
 
     function addCurrentImageToBlacklist()
@@ -159,7 +162,7 @@
         case "a":
           if (pageIndex == 0)
           {
-            showError("no")
+            writeMessage("no")
           }
           else
           {
@@ -170,9 +173,9 @@
           }
           break
         case "d":
-          if (pageIndex >= linkList.length)
+          if (pageIndex > linkList.length)
           {
-            showError("no")
+            writeMessage("no")
           }
           else
           {
@@ -198,18 +201,22 @@
               try
               {
                 fs.writeFileSync(fileName, new Uint8Array(req.response), { flag: "wx" })
-                alert("saved!")
+                writeMessage("saved!")
+                navigator.focus()
               }
               catch (exc)
               {
                 if (exc.code == "EEXIST")
-                  alert("file already exists...")
+                {
+                  writeMessage("file already exists...")
+                  navigator.focus()
+                }
                 else
                   throw exc
               }
             }
             else
-              showError("something went wrong")
+              writeMessage("something went wrong")
           }
           req.send(null)
 
