@@ -151,7 +151,7 @@
 
     function addCurrentImageToBlacklist()
     {
-      const md5 = getCurrentIframe().contentDocument.getElementById("image-container").attributes["data-md5"].value
+      const md5 = getCurrentIframe().contentDocument.getElementsByClassName("image-container")[0].attributes["data-md5"].value
       blacklist.addToBlacklist(md5)
     }
 
