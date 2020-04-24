@@ -67,3 +67,19 @@ module.exports.getUrlList = (tags, md5Blacklist) =>
         )
     })
 }
+
+// module.exports.imagePagesIterator = async function* () {
+//     // yield 1
+//     // yield 2
+//     const tags = ["nail_polish", "legs"]
+//     let page = 1
+
+//     while (true)
+//     {
+//         for (const tag of tags)
+//         {
+//             booru.posts()
+//         }
+//         page++
+//     }
+// };
