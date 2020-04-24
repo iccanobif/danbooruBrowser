@@ -1,239 +1,224 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>danbooru browser</title>
+    <link href="danbooruViewer.css" rel="stylesheet" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>danbooru browser</title>
-  <link href="danbooruViewer.css" rel="stylesheet">
-</head>
-
-<body>
-  <div id="navigator">
-    <div id="position"></div>
-    <a href="index.html">HOME</a>
-    <span id="messages"></span>
-    <!-- TODO:
+  <body>
+    <div id="navigator">
+      <div id="position"></div>
+      <a href="index.html">HOME</a>
+      <span id="messages"></span>
+      <!-- TODO:
       current tag name
       is saved
       loading animation
-    -->
-  </div>
-  <div id="iframeContainer">
-  </div>
-  <script>
-    if (typeof module === 'object')
-    { window.module = module; module = undefined; }
-  </script>
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js"> </script>
-  <script>if (window.module) module = window.module;</script>
-  <script>
-    const http = require("http")
-    const fs = require("fs")
-    const path = require("path")
-    const { remote, ipcRenderer } = require('electron')
-    const { getUrlList } = require("./getUrlList")
-    const blacklist = require("./blacklist")
-
-    const navigator = document.getElementById("navigator")
-    const iframeContainer = document.getElementById("iframeContainer")
-
-    const danbooruIframes = {}
-
-    let currentTag = null
-    let linkList = null
-    let pageIndex = null
-
-    function writeMessage(msg)
-    {
-      console.log(msg)
-      document.getElementById("messages").innerText = msg
-    }
-
-    function addIframeToPool(url)
-    {
-      console.log("aggiungo l'iframe " + url)
-      const newIframe = $("<iframe src='" + url + "' class='danbooruIframeHidden' />")
-      iframeContainer.appendChild(newIframe[0])
-      danbooruIframes[url] = newIframe
-    }
-
-    function removeIframeFromPool(url)
-    {
-      console.log("cerco di eliminare l'iframe " + url)
-      iframeContainer.removeChild(danbooruIframes[url][0])
-      delete danbooruIframes[url]
-    }
-
-    function getCurrentIframe() 
-    {
-      return danbooruIframes[linkList[pageIndex]][0]
-    }
-
-    function openUrlList(links)
-    {
-      console.log("sto per cercare di aprire la pagina")
-      linkList = links
-      pageIndex = 0
-      if (linkList.length == 0)
-      {
-        writeMessage("no posts for tag " + currentTag);
+    --></div>
+    <div id="iframeContainer"></div>
+    <script>
+      if (typeof module === "object") {
+        window.module = module;
+        module = undefined;
       }
-      else
-      {
-        for (let i = 0; i < 6; i++)
-        {
-          addIframeToPool(linkList[i]);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+      if (window.module) module = window.module;
+    </script>
+    <script>
+      const http = require("http");
+      const fs = require("fs");
+      const path = require("path");
+      const { remote, ipcRenderer } = require("electron");
+      const { getUrlList } = require("./getUrlList");
+      const blacklist = require("./blacklist");
+
+      const navigator = document.getElementById("navigator");
+      const iframeContainer = document.getElementById("iframeContainer");
+
+      const danbooruIframes = {};
+
+      let currentTag = null;
+      let linkList = null;
+      let pageIndex = null;
+
+      function writeMessage(msg) {
+        console.log(msg);
+        document.getElementById("messages").innerText = msg;
+      }
+
+      function addIframeToPool(url) {
+        console.log("aggiungo l'iframe " + url);
+        const newIframe = $(
+          "<iframe src='" + url + "' class='danbooruIframeHidden' />"
+        );
+        iframeContainer.appendChild(newIframe[0]);
+        danbooruIframes[url] = newIframe;
+      }
+
+      function removeIframeFromPool(url) {
+        console.log("cerco di eliminare l'iframe " + url);
+        iframeContainer.removeChild(danbooruIframes[url][0]);
+        delete danbooruIframes[url];
+      }
+
+      function getCurrentIframe() {
+        return danbooruIframes[linkList[pageIndex]][0];
+      }
+
+      function openUrlList(links) {
+        console.log("sto per cercare di aprire la pagina");
+        linkList = links;
+        pageIndex = 0;
+        if (linkList.length == 0) {
+          writeMessage("no posts for tag " + currentTag);
+        } else {
+          for (let i = 0; i < 6; i++) {
+            addIframeToPool(linkList[i]);
+          }
+
+          console.log("primo url: " + linkList[0]);
+
+          danbooruIframes[linkList[0]]
+            .removeClass("danbooruIframeHidden")
+            .addClass("danbooruIframeVisible");
+
+          updateNavigator();
+        }
+      }
+
+      async function openTag(tag) {
+        console.log("opening tag " + tag);
+        currentTag = tag;
+
+        const md5Blacklist = await blacklist.getBlacklist();
+
+        openUrlList(await getUrlList(currentTag, md5Blacklist));
+      }
+
+      function scasinaIframe(direction) {
+        if (direction == "forwards") {
+          // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
+          if (pageIndex + 5 < linkList.length)
+            addIframeToPool(linkList[pageIndex + 5]);
+
+          // Cerco un iframe con l'url di i-5 e lo distruggo
+          if (pageIndex - 5 >= 0) removeIframeFromPool(linkList[pageIndex - 5]);
         }
 
-        console.log("primo url: " + linkList[0]);
+        if (direction == "backwards") {
+          // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
+          if (pageIndex + 6 < linkList.length)
+            removeIframeFromPool(linkList[pageIndex + 6]);
 
-        danbooruIframes[linkList[0]]
-          .removeClass("danbooruIframeHidden")
-          .addClass("danbooruIframeVisible")
+          // Cerco un iframe con l'url di i-5 e lo distruggo
+          if (pageIndex - 4 >= 0) addIframeToPool(linkList[pageIndex - 4]);
+        }
 
-        updateNavigator()
-      }
-    }
-
-    async function openTag(tag)
-    {
-      console.log("opening tag " + tag)
-      currentTag = tag
-
-      const md5Blacklist = await blacklist.getBlacklist()
-
-      openUrlList(await getUrlList(currentTag, md5Blacklist))
-    }
-
-    function scasinaIframe(direction)
-    {
-      if (direction == "forwards")
-      {
-        // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
-        if (pageIndex + 5 < linkList.length)
-          addIframeToPool(linkList[pageIndex + 5])
-
-        // Cerco un iframe con l'url di i-5 e lo distruggo
-        if (pageIndex - 5 >= 0)
-          removeIframeFromPool(linkList[pageIndex - 5])
-      }
-
-      if (direction == "backwards")
-      {
-        // Creo un iframe con l'url di i+5 (se esiste, quindi non sono già quasi alla fine)
-        if (pageIndex + 6 < linkList.length)
-          removeIframeFromPool(linkList[pageIndex + 6])
-
-        // Cerco un iframe con l'url di i-5 e lo distruggo
-        if (pageIndex - 4 >= 0)
-          addIframeToPool(linkList[pageIndex - 4])
-      }
-
-      // Cerco l'iframe con l'url di i e lo mostro, tutto gli altri li nascondo
-      Object.keys(danbooruIframes).forEach(url =>
-      {
-        if (url == linkList[pageIndex])
-          danbooruIframes[url]
-            .removeClass("danbooruIframeHidden")
-            .addClass("danbooruIframeVisible")
-        else
-          danbooruIframes[url]
-            .removeClass("danbooruIframeVisible")
-            .addClass("danbooruIframeHidden")
-      })
-    }
-
-    function updateNavigator()
-    {
-      $("#position").html(pageIndex + 1 + "/" + linkList.length + " " + currentTag)
-      writeMessage("")
-    }
-
-    function addCurrentImageToBlacklist()
-    {
-      const md5 = getCurrentIframe().contentDocument.getElementsByClassName("image-container")[0].attributes["data-md5"].value
-      blacklist.addToBlacklist(md5)
-    }
-
-    document.addEventListener("keypress", (ev) =>
-    {
-      switch (ev.key)
-      {
-        case "a":
-          if (pageIndex == 0)
-          {
-            writeMessage("no")
-          }
+        // Cerco l'iframe con l'url di i e lo mostro, tutto gli altri li nascondo
+        Object.keys(danbooruIframes).forEach((url) => {
+          if (url == linkList[pageIndex])
+            danbooruIframes[url]
+              .removeClass("danbooruIframeHidden")
+              .addClass("danbooruIframeVisible");
           else
-          {
-            addCurrentImageToBlacklist()
-            pageIndex--
-            scasinaIframe("backwards")
-            updateNavigator()
-          }
-          break
-        case "d":
-          if (pageIndex > linkList.length)
-          {
-            writeMessage("no")
-          }
-          else
-          {
-            addCurrentImageToBlacklist()
-            pageIndex++
-            scasinaIframe("forwards")
-            updateNavigator()
-          }
-          break
-        case "e":
-          // SAVE
-          const fileUrl = getCurrentIframe().contentDocument.getElementById("image").src
-          const fileName = "d:/ero/" + path.posix.basename(fileUrl)
+            danbooruIframes[url]
+              .removeClass("danbooruIframeVisible")
+              .addClass("danbooruIframeHidden");
+        });
+      }
 
-          const req = new XMLHttpRequest()
-          req.open("GET", fileUrl)
-          req.responseType = "arraybuffer"
-          req.onload = (event) =>
-          {
-            if (req.response)
-            {
-              // TODO if the file already exists, alert and don't save
-              try
-              {
-                fs.writeFileSync(fileName, new Uint8Array(req.response), { flag: "wx" })
-                writeMessage("saved!")
-                navigator.focus()
-              }
-              catch (exc)
-              {
-                if (exc.code == "EEXIST")
-                {
-                  writeMessage("file already exists...")
-                  navigator.focus()
-                }
-                else
-                  throw exc
-              }
+      function updateNavigator() {
+        $("#position").html(
+          pageIndex + 1 + "/" + linkList.length + " " + currentTag
+        );
+        writeMessage("");
+      }
+
+      function addCurrentImageToBlacklist() {
+        const md5 = getCurrentIframe().contentDocument.getElementsByClassName(
+          "image-container"
+        )[0].attributes["data-md5"].value;
+        blacklist.addToBlacklist(md5);
+      }
+
+      document.addEventListener("keydown", (ev) => {
+        console.log(ev.key);
+        switch (ev.key) {
+          case "a":
+          case "PageUp":
+            ev.preventDefault();
+            if (pageIndex == 0) {
+              writeMessage("no");
+            } else {
+              addCurrentImageToBlacklist();
+              pageIndex--;
+              scasinaIframe("backwards");
+              updateNavigator();
             }
-            else
-              writeMessage("something went wrong")
-          }
-          req.send(null)
+            break;
+          case "d":
+          case "PageDown":
+            ev.preventDefault();
+            if (pageIndex > linkList.length) {
+              writeMessage("no");
+            } else {
+              addCurrentImageToBlacklist();
+              pageIndex++;
+              scasinaIframe("forwards");
+              updateNavigator();
+            }
+            break;
+          case "e":
+          case "Insert":
+            ev.preventDefault();
+            // SAVE
+            const fileUrl = getCurrentIframe().contentDocument.getElementById(
+              "image"
+            ).src;
+            const fileName = "d:/ero/" + path.posix.basename(fileUrl);
 
-          break
-        case "s":
-          // scroll up
-          window.scrollBy(0, 100)
-          break
-        case "w":
-          // scroll down
-          window.scrollBy(0, -100)
-          break
-      }
-    })
+            const req = new XMLHttpRequest();
+            req.open("GET", fileUrl);
+            req.responseType = "arraybuffer";
+            req.onload = (event) => {
+              if (req.response) {
+                // TODO if the file already exists, alert and don't save
+                try {
+                  fs.writeFileSync(fileName, new Uint8Array(req.response), {
+                    flag: "wx",
+                  });
+                  writeMessage("saved!");
+                  navigator.focus();
+                } catch (exc) {
+                  if (exc.code == "EEXIST") {
+                    writeMessage("file already exists...");
+                    navigator.focus();
+                  } else throw exc;
+                }
+              } else writeMessage("something went wrong");
+            };
+            req.send(null);
 
-    openTag(new URL(window.location).searchParams.get("tag"))
-  </script>
-</body>
+            break;
+          case "s":
+          case "End":
+            // scroll up
+            ev.preventDefault();
+            window.scrollBy(0, 200);
+            break;
+          case "w":
+          case "Home":
+            // scroll down
+            ev.preventDefault();
+            window.scrollBy(0, -200);
+            break;
+        }
+      });
 
+      openTag(new URL(window.location).searchParams.get("tag"));
+    </script>
+  </body>
 </html>
