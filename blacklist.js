@@ -5,7 +5,7 @@ function readdir(path)
 {
     return new Promise((resolve, reject) =>
     {
-        fs.readdir("d:\\ero", (err, files) =>
+        fs.readdir(path, (err, files) =>
         {
             if (err)
             {
@@ -27,6 +27,13 @@ module.exports.getBlacklist = () =>
         const files3 = await readdir("d:\\ero\\2019")
         const files4 = await readdir("d:\\ero\\smoking")
 
+        console.log(files)
+        console.log(files2)
+        console.log(files3)
+        console.log(files4)
+
+        console.log(files.concat(files2).concat(files3).concat(files4).length)
+
         const md5Blacklist = new Set(
             files.concat(files2).concat(files3).concat(files4)
                 .map(file => file.substring(0, file.lastIndexOf("."))) // Remove extension
@@ -45,10 +52,7 @@ module.exports.getBlacklist = () =>
             var data = ""
         }
 
-        data.split("\n").forEach(x =>
-        {
-            md5Blacklist.add(x)
-        })
+        data.split("\n").forEach(x => md5Blacklist.add(x))
 
         resolve(md5Blacklist)
     })
