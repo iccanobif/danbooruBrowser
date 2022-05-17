@@ -10,6 +10,7 @@
     <div id="navigator">
       <div id="position"></div>
       <a href="index.html">HOME</a>
+      <input type="checkbox" id="smoking" /><label for="smoking">smoking</label>
       <span id="messages"></span>
       <!-- TODO:
       current tag name
@@ -138,9 +139,15 @@
       }
 
       function addCurrentImageToBlacklist() {
-        const md5 = getCurrentIframe().contentDocument.getElementsByClassName(
-          "image-container"
-        )[0].attributes["data-md5"].value;
+
+        const fileUrl = getCurrentIframe().contentDocument.getElementById(
+              "image"
+            ).src;
+
+        if (!fileUrl) return
+
+        const md5 = fileUrl.split(".").reverse()[1].slice(-32)
+
         blacklist.addToBlacklist(md5);
       }
 
@@ -178,7 +185,9 @@
             const fileUrl = getCurrentIframe().contentDocument.getElementById(
               "image"
             ).src;
-            const fileName = "d:/ero/" + path.posix.basename(fileUrl);
+
+            const isSmoking = document.getElementById("smoking").checked
+            const fileName = "d:/ero/" + (isSmoking ? "smoking/" : "") + path.posix.basename(fileUrl);
 
             const req = new XMLHttpRequest();
             req.open("GET", fileUrl);
