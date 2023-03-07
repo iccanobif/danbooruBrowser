@@ -1,18 +1,6 @@
-const Danbooru = require("danbooru");
-const fs = require("fs");
 const async = require("async");
+const { getPostsFromTag } = require("./danbooru.js");
 
-let danbooruCredentials = undefined;
-try {
-  const configText = fs.readFileSync("config.json", { encoding: "utf8" });
-  const { user, apiKey } = JSON.parse(configText);
-  danbooruCredentials = user + ":" + apiKey;
-} catch (exc) {
-  // Should report the error
-  danbooruCredentials = undefined;
-}
-
-const booru = new Danbooru(danbooruCredentials);
 
 module.exports.getUrlList = (tags, md5Blacklist) => {
   return new Promise((resolve, reject) => {
@@ -20,8 +8,7 @@ module.exports.getUrlList = (tags, md5Blacklist) => {
     async.map(
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       (page, callback) => {
-        booru
-          .posts({ tags: tags, limit: 200, page: page })
+        getPostsFromTag(tags, 200, page)
           .then((posts) => {
             callback(
               null,
@@ -69,7 +56,7 @@ module.exports.imagePagesIterator = async function* (md5Blacklist) {
     console.log("inizio loop");
     for (const tag of tags) {
       console.log(tag, page);
-      const posts = await booru.posts({ tags: tag, limit: 20, page: page });
+      const posts = await getPostsFromTag(tag, 20, page)
       for (const post of posts.filter((p) => !md5Blacklist.has(p.md5))) {
         const url = "https://danbooru.donmai.us/posts/" + post.id;
         console.log(url);

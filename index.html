@@ -27,7 +27,7 @@
       const fs = require("fs")
       const tags = fs.readFileSync("tags.csv", { encoding: "utf8" }).split("\n")
 
-      tags.sort().forEach(tag =>
+      tags.forEach(tag =>
       {
         document.write("<a href='danbooruViewer.html?tag=" + tag + "'>" + tag + "</a>")
       })

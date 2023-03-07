@@ -140,10 +140,10 @@
 
       function addCurrentImageToBlacklist() {
 
-        const fileUrl = getCurrentIframe().contentDocument.getElementById(
-              "image"
-            ).src;
+        const imageElement = getCurrentIframe().contentDocument.getElementById("image")
+        if (!imageElement) return 
 
+        const fileUrl = imageElement.src;
         if (!fileUrl) return
 
         const md5 = fileUrl.split(".").reverse()[1].slice(-32)
